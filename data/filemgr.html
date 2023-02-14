@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head> 
+<meta charset="utf-8"> 
+<style>
+	dt { text-align:left; font-size: 20px; width:500px;margin:0;border:0;padding:0}	
+	.light { background-color:#eeeeee;}
+	.dark { background-color:#c0c0c0;}
+	div {width:500px; margin:0 auto; }
+	button {
+	    border: 0;
+	    border-radius: 1.5rem;
+	    background-color: #1fa3ec;
+	    color: #fff;
+	    line-height: 2rem;
+	    font-size: 1.5rem;
+	    width: 32%
+	}	
+</style>
+</head> 
+
+<body onload="list_file()">
+<div>	
+<h1 style="text-align:center;background-color: #1fa3ec; " ><font color='white'>Esp File Manager</font></h1>
+<div id="lister">
+	<dt class='light' onclick="choose(this)"> index.html------------322 bytes </dt>
+	<dt class='dark' onclick="choose(this)"> login.html------------22 bytes </dt>
+</div>
+
+<h2 id='shower'>selected file: </h2><br/>
+
+<div style="text-align:center;">
+<button onclick="do_remove()">remove</button>
+<button onclick="do_download()">download</button>
+<button onclick="do_upload()">upload</button>
+</div>           
+</div>
+
+<script>
+	var selected_element;
+	var selected_file;
+	var http_path;
+	
+	function choose(t) {
+		t.style.border="2px solid #1fa3ec";
+		var str = t.textContent;
+		selected_file=str.substring(0, str.indexOf("---"));
+		document.getElementById("shower").innerHTML = "<p>selected file: " + selected_file + "</p>";
+		
+		if (selected_element) selected_element.style.border="";
+		selected_element = t;
+	}
+		
+     function do_upload() {
+			var input = document.createElement("input");
+			input.type = "file";
+			input.click();
+			input.onchange = function(){
+			 	var file = input.files[0];
+			   	var form = new FormData();
+			    	form.append("file", file); 
+			    	form.append("fileName", file.name);
+			    	var xhr = new XMLHttpRequest();
+			    	var action = "upload";
+			    	xhr.open("POST", action);
+			    	xhr.send(form); 
+			    	xhr.onreadystatechange = function(){
+			     	if(xhr.readyState==4 && xhr.status==200){
+			     		document.getElementById("lister").innerHTML = xhr.response;
+			        		alert("file upload succeed!");
+			      	}
+			    }
+			}
+     	}
+     	
+	function do_download() {
+		if (!selected_file) {
+			alert("select a file first.");
+			return;
+		}
+		
+		_url = http_path + 'download?file=' + selected_file;	
+		window.open(_url);
+	}
+	
+	function do_remove() {
+		if (!selected_file) {
+			alert("select a file first.");
+			return;
+		}
+			
+		var xmlhttp = new XMLHttpRequest(),
+  			method = 'GET',
+  			url = http_path + 'remove?file=' + selected_file;	
+  		console.log(url);
+  		xmlhttp.open(method, url, true);
+		xmlhttp.onload = function () {// 处理取回的数据(在 xmlhttp.response 中找到)
+				document.getElementById("lister").innerHTML = xmlhttp.response;			
+				//console.log(xmlhttp.response);
+		};  		
+  		xmlhttp.send();
+  		selected_file = "";
+	}
+	
+	function list_file() {
+		var my_url = window.location.href;
+     	http_path = my_url.substring(0, my_url.lastIndexOf('/')) + "/";
+		var xmlhttp = new XMLHttpRequest(),
+  			method = 'GET',
+  			url = http_path + 'dir';
+  			
+  		xmlhttp.open(method, url, true);
+		xmlhttp.onload = function () {
+				document.getElementById("lister").innerHTML = xmlhttp.response;
+		};  		
+  		xmlhttp.send();
+	}	
+</script>
+
+</body>
+</html>

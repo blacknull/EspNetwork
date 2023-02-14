@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Config ESP</title>
+<style>
+body {
+    text-align: center;
+    font-family: verdana;    
+}
+
+input {
+    width: 95%
+}
+
+button {
+    border: 0;
+    border-radius: .3rem;
+    background-color: #1fa3ec;
+    color: #fff;
+    line-height: 3rem;
+    font-size: 2rem;
+    width: 100%
+}
+
+div,
+input {
+    padding: 5px;
+    font-size: 1.7em;
+}
+
+div,
+body {
+    padding: 5px;
+}
+
+</style>
+
+</head>
+
+<body>
+    <div style='text-align:center;display:inline-block;min-width:300px;'>
+        <br/>
+        <h1>Wifi Config</h1>
+        <form id="config" method='get' action='login'>
+            <input id='s' name='Wifi' length=32 placeholder='SSID'><br/><br/>
+            <input id='p' name='Password' length=64 type='password' placeholder='password'><br/><br/>
+            <button type='submit'>save</button>
+        </form>
+        <br/>        
+    </div>
+</body>
+
+</html>

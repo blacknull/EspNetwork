@@ -1,4 +1,5 @@
 #include "EspNetwork.h""
+#define _APP_DEBUG
 
 typedef enum {
   NONE_STATE,
@@ -8,8 +9,12 @@ typedef enum {
 } APP_STATE;
 volatile APP_STATE app_state = NONE_STATE;
 
+void handleTest() {
+  webServer.send(200, "text/plain", "this is a web service test.");
+}
+
 void webServerServiceSetup() {
-//  webServer.on("/test", handleTest);
+  webServer.on("/test", handleTest);  
 }
 
 void initWifi() {

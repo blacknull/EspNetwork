@@ -116,7 +116,7 @@ const int SERVER_TEST_MAX = 5;
 int timeServerTest() {
   int i = 0;
   for (i = 0; i < SERVER_TEST_MAX; i++) {
-  	int numServers = sizeof(serverPool);
+  	int numServers = 6;
   	DebugPrintln("ntp server nums: " + String(numServers));  	
   	
   	timeClient.begin();
@@ -164,7 +164,7 @@ void clockBegin(std::function<void (uint8_t idx)> cb_alarm) {
 void clockProcess() {
   timeClient.update();
     
-  static int nLastMinute = 0;
+  static int nLastMinute = -1;
   int nMinute = timeClient.getMinutes();
   if (nMinute == nLastMinute) // prevent reentry in the same minute
     return;
