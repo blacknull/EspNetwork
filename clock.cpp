@@ -1,7 +1,6 @@
 
 #ifdef ESP32
 	#include <WiFi.h>
-	#include "SPIFFS.h"
 #else
 	#include <ESP8266WiFi.h>
 #endif
@@ -22,13 +21,15 @@ CLOCK_STRUCT clockCfg;
 
 
 // for NTP Client
-String serverPool[] = {"ntp1.aliyun.com", "ntp2.aliyun.com", "ntp3.aliyun.com", "time1.cloud.tencent.com", "time2.cloud.tencent.com", "time3.cloud.tencent.com" };
+String serverPool[6] = {"ntp1.aliyun.com", "ntp2.aliyun.com", "ntp3.aliyun.com", "time1.cloud.tencent.com", "time2.cloud.tencent.com", "time3.cloud.tencent.com" };
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "ntp1.aliyun.com", 8 * 3600);
 
 
 ///////////////////////////////////////////////////////////////////////
 void clockGetTime(int& hours, int& minutes, int& seconds) {
+  timeClient.update();
+
   hours = timeClient.getHours();
   minutes = timeClient.getMinutes();
   seconds = timeClient.getSeconds();
@@ -39,8 +40,8 @@ const char* szClockJson = "/clock.json";
 void clockLoadCfg() {
   String jsonClock;
 
-  SPIFFS.begin();
-  File f = SPIFFS.open(szClockJson, "r");
+  MyFs.begin();
+  File f = MyFs.open(szClockJson, "r");
   if (f) {
     jsonClock = f.readString();
     f.close();
@@ -104,7 +105,7 @@ void clockSaveCfg(DynamicJsonDocument* pdoc) {
     doc["alarm"]["set"][i]["sound"]   = clockCfg.vctAlarm[i].strAlarmSound.c_str();
   }
 
-  File f = SPIFFS.open(szClockJson, "w");
+  File f = MyFs.open(szClockJson, "w");
   if (f) {
     serializeJsonPretty(doc, f);
     f.close();
@@ -114,11 +115,11 @@ void clockSaveCfg(DynamicJsonDocument* pdoc) {
 ///////////////////////////////////////////////////////////////////////
 const int SERVER_TEST_MAX = 5;		
 int timeServerTest() {
+ 	int numServers = 6;
+ 	DebugPrintln("ntp server nums: " + String(numServers));  	
+
   int i = 0;
-  for (i = 0; i < SERVER_TEST_MAX; i++) {
-  	int numServers = 6;
-  	DebugPrintln("ntp server nums: " + String(numServers));  	
-  	
+  for (i = 0; i < SERVER_TEST_MAX; i++) {  	
   	timeClient.begin();
   
   	const unsigned long INTERVAL_MAX = 300;	// ms
@@ -151,10 +152,13 @@ void clockBegin(std::function<void (uint8_t idx)> cb_alarm) {
   //timeClient.begin();
   int rval = timeServerTest();
   if (rval > 1) {
-  	DebugPrintln("set new ntp server." + clockCfg.strNtpServer);  
+  	DebugPrintln(String("set new ntp server.") + clockCfg.strNtpServer);  
   }
   else if (rval >= SERVER_TEST_MAX) {
-  	DebugPrintln("error: too many times trying server.");
+  	DebugPrintln(String("error: too many times trying server."));
+  }
+  else {
+    DebugPrintln(String("set default ntp server.") + clockCfg.strNtpServer);  
   }
 
   callbackAlarm = cb_alarm;
@@ -171,10 +175,12 @@ void clockProcess() {
 
   // keep minute if the num is different with last minute
   nLastMinute = nMinute;
-          
+
+  //if (true) return;
+
   int idxOnce = -1;
   int count = clockCfg.vctAlarm.size();
-  for (int i = 0; i < count; i++) {
+  for (uint8_t i = 0; i < count; i++) {
     ALARM_STRUCT alarm = clockCfg.vctAlarm[i];
     if (alarm.ucWeekday & (1 << timeClient.getDay())) {
       if (alarm.ucHour == timeClient.getHours()) {
@@ -207,8 +213,8 @@ void clockProcess() {
 void handleAlarm() {
   String htmlAlarm;
   
-  SPIFFS.begin();
-  File f = SPIFFS.open("/alarm.html", "r");
+  MyFs.begin();
+  File f = MyFs.open("/alarm.html", "r");
   if(f) {
     htmlAlarm = f.readString();
     f.close();

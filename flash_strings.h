@@ -1,6 +1,3 @@
-#ifndef _FLASH_STRING_H
-#define _FLASH_STRING_H
-
 static const char FILE_MGR_HTML[] PROGMEM = "<!DOCTYPE html>\n\
 <html><head> \n\
 <meta charset='utf-8'> \n\
@@ -142,6 +139,3 @@ div,body {\n\
             <button type='submit'>save</button>\n\
         </form><br/></div></body>\n\
 </html>";
-
-
-#endif

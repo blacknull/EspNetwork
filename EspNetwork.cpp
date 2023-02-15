@@ -69,8 +69,8 @@ void configSave() {
 void deviceSettingLoad() {
   String jsonSetting;
 
-  SPIFFS.begin();
-  File f = SPIFFS.open("/setting.json", "r");
+  MyFs.begin();
+  File f = MyFs.open("/setting.json", "r");
   if (f) {
     jsonSetting = f.readString();
     f.close();
@@ -176,7 +176,7 @@ void handleSetting() {
   setting += "\"}\n";
 
   //DebugPrintln("new setting:\n" + setting);
-  File f = SPIFFS.open("/setting.json", "w");
+  File f = MyFs.open("/setting.json", "w");
   if (f) {
     f.write(setting.c_str(), setting.length());
     f.close();
@@ -235,9 +235,9 @@ void handleDir()
     strExt = webServer.arg("ext");
   }
 
-  //SPIFFS.begin();
+  //MyFs.begin();
   String infoDir;
-  File root = SPIFFS.open("/");
+  File root = MyFs.open("/");
   if (!root) {
     DebugPrintln("- failed to open directory");
     return;
@@ -296,9 +296,9 @@ void handleDir() {
   	strExt = webServer.arg("ext");
   }
   
-  SPIFFS.begin();
+  MyFs.begin();
   String infoDir;
-  Dir dir = SPIFFS.openDir("/");
+  Dir dir = MyFs.openDir("/");
   int count = 0;
   while (dir.next()) {
     String fileName = dir.fileName();
@@ -306,6 +306,10 @@ void handleDir() {
     		if (!fileName.endsWith(strExt))
     			continue;
     }
+
+    if (!fileName.startsWith("/"))
+      fileName = "/" + fileName;
+
     size_t fileSize = dir.fileSize();
 
     String infoFile;
@@ -316,7 +320,7 @@ void handleDir() {
       infoFile = "<dt class='light'";
     }
 	
-	infoFile += " name=" + String(count);
+	  infoFile += " name=" + String(count);
     infoFile += " onclick=\"choose(this)\">";
     infoFile += fileName;
     infoFile += "--------";
@@ -375,7 +379,7 @@ void handleRemove() {
     target = "/" + target;
   }
   
-  if (SPIFFS.remove(target)) {
+  if (MyFs.remove(target)) {
     DebugPrintln(target + " has removed!");
   }
   else {
@@ -406,7 +410,7 @@ void handleFileUpload() {
     DebugPrintln("handleFileUpload Name: " + filename);
 
     //本地文件系统创建一个文件用来保存内容
-    fsUploadFile = SPIFFS.open(filename, "w");
+    fsUploadFile = MyFs.open(filename, "w");
     if (!fsUploadFile) {
       DebugPrintln(filename + "open failed.");
       return;
@@ -453,11 +457,11 @@ bool handleFileRead(String path, String type = "") {            //处理浏览�
   if (type != "")
     contentType = type;
     
-  //SPIFFS.begin();
-  if (!SPIFFS.exists(path))
+  //MyFs.begin();
+  if (!MyFs.exists(path))
     return false;
 
-  File file = SPIFFS.open(path, "r");          // 则尝试打开该文件
+  File file = MyFs.open(path, "r");          // 则尝试打开该文件
   if (!file) {
     webServer.send(404, "text/plain", "file open error.");
     return false;
@@ -589,15 +593,15 @@ void wifiConfig() {
   DebugPrintln("IP address: " + WiFi.softAPIP().toString());
 
   // init spiffs
-  SPIFFS.begin();
+  MyFs.begin();
 
   /* Setup the DNS server redirecting all the domains to the apIP */
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
 
-//  webServer.serveStatic("/generate_204", SPIFFS, "/index.html");  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
-//  webServer.serveStatic("/fwlink", SPIFFS, "/index.html");  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
-//  webServer.serveStatic("/", SPIFFS, "/index.html");
+//  webServer.serveStatic("/generate_204", MyFs, "/index.html");  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
+//  webServer.serveStatic("/fwlink", MyFs, "/index.html");  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
+//  webServer.serveStatic("/", MyFs, "/index.html");
   webServer.on("/generate_204", handleCfgIndex);
   webServer.on("/fwlink", handleCfgIndex);
   webServer.on("/", handleCfgIndex);
@@ -629,12 +633,13 @@ void wifiInit(const String ssid, const String psw,
              std::function<void ()> userWebService/* = NULL*/,
              std::function<void (uint8_t num, WStype_t type, uint8_t * payload, size_t length)> userWebSocketEvent/* = NULL*/) {
   
-  SPIFFS.begin();
+  MyFs.begin();
 
   for (int i = 0; i < MAX_WIFI_CNCT; i++) {
     WiFi.softAPdisconnect(true);
     WiFi.disconnect();
-    WiFi.setHostname(host.length() > 0 ? host.c_str() : config.host);
+    //WiFi.setHostname(host.length() > 0 ? host.c_str() : config.host);
+    WiFi.hostname(host.length() > 0 ? host.c_str() : config.host);
     WiFi.begin(ssid.c_str(), psw.c_str());  
     unsigned long time_begin = millis();
     while ( WiFi.status() != WL_CONNECTED ) {

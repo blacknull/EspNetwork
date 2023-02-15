@@ -39,6 +39,21 @@ extern void addDebugArgsMsg(const char *format, ...);
 
 #define DebugPrintVersion() 	DebugPrintln("\nbuild time: " + String(__DATE__) + ", " + String(__TIME__))
 
+
+#if defined(FS_SPIFFS)
+  #ifdef ESP32
+    #include "SPIFFS.h"
+  #else
+  #endif
+
+  #define MyFs SPIFFS
+#else
+  #include <LittleFS.h>
+
+  #define MyFs LittleFS
+#endif
+
+
 class CTimerMs {
   public:
     CTimerMs(unsigned long interval = 100) {
