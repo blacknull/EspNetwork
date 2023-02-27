@@ -1,5 +1,4 @@
-#include "EspNetwork.h""
-#define _APP_DEBUG
+#include "EspNetwork.h"
 
 typedef enum {
   NONE_STATE,
@@ -36,24 +35,35 @@ void initWifi() {
 }
 
 void setup() {
-  DebugBegin(9600);
+  DebugBegin(115200);
   delay(100);
 
   // version
   DebugPrintVersion();
 
   // info
-  DebugPrintln("core version: " + ESP.getCoreVersion());
-  DebugPrintln("flash size: " + String(ESP.getFlashChipRealSize() / 1024) + "KBytes");
-  DebugPrintln("mcu frequence: " + String(ESP.getCpuFreqMHz()) + "Mhz");
-  
+  #ifdef ESP32
+    DebugPrintln("core version: " + String(ESP.getSdkVersion()));
+    DebugPrintln("flash size: " + String(ESP.getFlashChipSize() / 1024) + "KBytes");
+    DebugPrintln("mcu frequence: " + String(ESP.getCpuFreqMHz()) + "Mhz");
+  #else
+    DebugPrintln("core version: " + ESP.getCoreVersion());
+    DebugPrintln("flash size: " + String(ESP.getFlashChipRealSize() / 1024) + "KBytes");
+    DebugPrintln("mcu frequence: " + String(ESP.getCpuFreqMHz()) + "Mhz");
+  #endif    
+
   // network
   initWifi();
 
   app_state = WORK_STATE;
 }
 
+CTimerMs timerHello(2000);
 void loop() {
+  if (timerHello.toNextTime()) {
+    DebugPrintln("hello world!");
+  }
+
   wifiProcess();
   delay(10);
 }

@@ -94,6 +94,16 @@ class CTimerMs {
     unsigned long _countUpdate = 0;
 };
 
+struct MovingAverageTimer {
+  unsigned long usAverage = 0, usBegin = 0, usMax = 0, usMin = 0xffffffff;
+  void begin() { usBegin = micros(); }
+  void end() { 
+    unsigned long usCost = micros() - usBegin;
+    usMax = usCost > usMax ? usCost : usMax;
+    usMin = usCost < usMin ? usCost : usMin;
+    usAverage = (usCost + usAverage) / 2; }
+};
+
 extern uint32_t hexStrToUint32 (String strHex);
 
 #endif
