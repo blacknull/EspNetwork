@@ -1,3 +1,4 @@
+#define _APP_DEBUG
 #include "EspNetwork.h"
 
 typedef enum {
