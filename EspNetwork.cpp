@@ -362,9 +362,11 @@ void handleFile() {
 }
 
 void handleDebugMsg() {
+#if defined(_MSG_DEBUG) || defined(_MEM_DEBUG)
   String strDebug = "debug msg:\n";
   getDebugMsg(strDebug);
   webServer.send(200, "text/plain", strDebug);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
